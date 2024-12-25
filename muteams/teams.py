@@ -78,8 +78,8 @@ class Muteams:
             # menu_selector = 'xpath=//div[@aria-label="Chat"]'
             chat_selector = 'xpath=//span[@data-tid="chat-list-item-title"]'
             unread_selector = 'xpath=//div[contains(@class, "chatListItem_unreadIndicator")]/..'
+            self._wait_for_selector(page, chat_selector)
             while True:
-                self._wait_for_selector(page, chat_selector)
                 for unread_element in page.locator(unread_selector).all():
                     self._mark_as_read_if_required(page, unread_element)
                 if not state_saved:
