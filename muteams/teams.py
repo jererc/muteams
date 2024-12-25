@@ -51,7 +51,7 @@ class Muteams:
                 return True
         return False
 
-    def _mark_as_read_if_required(self, page, unread_element, timeout=5):
+    def _mark_as_read_if_required(self, unread_element, timeout=5):
         if not self.config.MARK_AS_READ_CHATS:
             return
         title_selector = 'xpath=.//div[3]/div/span'
@@ -81,7 +81,7 @@ class Muteams:
             self._wait_for_selector(page, chat_selector)
             while True:
                 for unread_element in page.locator(unread_selector).all():
-                    self._mark_as_read_if_required(page, unread_element)
+                    self._mark_as_read_if_required(unread_element)
                 if not state_saved:
                     context.storage_state(path=self.state_path)
                     state_saved = True
