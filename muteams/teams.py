@@ -21,7 +21,7 @@ class Muteams:
             context = None
             try:
                 browser = p.chromium.launch(
-                    headless=True,
+                    headless=self.config.HEADLESS,
                     args=[
                         '--disable-blink-features=AutomationControlled',
                     ],

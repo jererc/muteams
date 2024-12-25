@@ -9,10 +9,12 @@ from muteams.teams import Muteams
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--path', '-p', default=os.getcwd())
+    parser.add_argument('--headful', action='store_true')
     args = parser.parse_args()
     path = os.path.realpath(os.path.expanduser(args.path))
     config = Config(
         os.path.join(path, 'user_settings.py'),
+        HEADLESS=not args.headful,
         TIMEOUT=60,
         LOOP_DELTA=30,
     )
