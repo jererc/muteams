@@ -21,7 +21,7 @@ class Muteams:
             context = None
             try:
                 browser = p.chromium.launch(
-                    headless=False,
+                    headless=True,
                     args=[
                         '--disable-blink-features=AutomationControlled',
                     ],
@@ -45,14 +45,30 @@ class Muteams:
     #     page.type(selector, message)
     #     page.press(selector, 'Enter')
 
-    def _mark_as_read_if_required(self, element):
+    def _must_mark_as_read(self, title):
+        for mark_as_read_chat in self.config.MARK_AS_READ_CHATS:
+            if mark_as_read_chat in title:
+                return True
+        return False
+
+    def _mark_as_read_if_required(self, page, unread_element, timeout=5):
         if not self.config.MARK_AS_READ_CHATS:
             return
-        text = element.text_content().strip()
-        for mark_as_read_chat in self.config.MARK_AS_READ_CHATS:
-            if mark_as_read_chat in text:
-                element.click()
-                time.sleep(2)
+        title_selector = 'xpath=.//div[3]/div/span'
+        elements = unread_element.locator(title_selector).all()
+        if not elements:
+            logger.warning(f'failed to find {title_selector}')
+            return
+        title = elements[0].text_content().strip()
+        if not self._must_mark_as_read(title):
+            return
+        print(f'marking as read {title}')
+        unread_element.click()
+        end_ts = time.time() + timeout
+        while time.time() < end_ts:
+            if not unread_element.locator('xpath=.//div').all():
+                return
+            time.sleep(.2)
 
     def run(self):
         state_saved = False
@@ -61,10 +77,11 @@ class Muteams:
             page.goto(self.url)
             # menu_selector = 'xpath=//div[@aria-label="Chat"]'
             chat_selector = 'xpath=//span[@data-tid="chat-list-item-title"]'
+            unread_selector = 'xpath=//div[contains(@class, "chatListItem_unreadIndicator")]/..'
             while True:
                 self._wait_for_selector(page, chat_selector)
-                for element in page.locator(chat_selector).all():
-                    self._mark_as_read_if_required(element)
+                for unread_element in page.locator(unread_selector).all():
+                    self._mark_as_read_if_required(page, unread_element)
                 if not state_saved:
                     context.storage_state(path=self.state_path)
                     state_saved = True
