@@ -35,7 +35,7 @@ class TestTestCase(unittest.TestCase):
         makedirs(WORK_DIR)
         self.config = Config(__file__,
             MARK_AS_READ_CHATS=['Constance', 'Clémence', 'Céline'],
-            HEADLESS=True,
+            HEADLESS=False,
             TIMEOUT=60,
             LOOP_DELTA=10,
             RELOAD_MAX_ERRORS=10,

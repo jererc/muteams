@@ -10,6 +10,9 @@ from playwright.sync_api import TimeoutError, sync_playwright
 from muteams import WORK_DIR, logger
 
 
+RELOAD_MAX_ERRORS = 10
+
+
 @dataclass
 class UnreadChat:
     title: str
@@ -54,11 +57,6 @@ class Muteams:
         except TimeoutError:
             logger.debug(f'timed out for {selector}')
 
-    # def _send_message(self, page, message):
-    #     selector = 'xpath=//div[@aria-label="Type a message"]'
-    #     page.type(selector, message)
-    #     page.press(selector, 'Enter')
-
     def _must_mark_as_read(self, title):
         for mark_as_read_chat in self.config.MARK_AS_READ_CHATS:
             if mark_as_read_chat in title:
@@ -74,6 +72,11 @@ class Muteams:
             if self._must_mark_as_read(title):
                 return UnreadChat(title=title, element=elements[0])
 
+    def _select_oldest_chat(self, page):
+        chats = page.locator(self.chat_selector).all()
+        if chats:
+            chats[-1].click()
+
     def run(self):
         state_saved = False
         unread_counts = defaultdict(int)
@@ -82,20 +85,25 @@ class Muteams:
             page.goto(self.url)
             self._wait_for_selector(page, self.chat_selector)
             while True:
-                chat = self._get_unread_chat(page)
-                if chat:
-                    unread_counts[chat.title] += 1
-                    if unread_counts[chat.title] > self.config.RELOAD_MAX_ERRORS:
-                        logger.warning('reloading after too many errors')
-                        page.reload()
+                try:
+                    chat = self._get_unread_chat(page)
+                    if chat:
+                        unread_counts[chat.title] += 1
+                        if unread_counts[chat.title] > RELOAD_MAX_ERRORS:
+                            logger.warning('reloading after too many errors')
+                            page.reload()
+                            continue
+                        logger.info(f'marking as read {chat.title}')
+                        chat.element.click()
+                        time.sleep(1)
+                        self._select_oldest_chat(page)
                         continue
-                    print(f'marking as read {chat.title}')
-                    chat.element.click()
-                    time.sleep(1)
-                    continue
 
-                unread_counts.clear()
-                if not state_saved:
-                    context.storage_state(path=self.state_path)
-                    state_saved = True
+                    self._select_oldest_chat(page)
+                    unread_counts.clear()
+                    if not state_saved:
+                        context.storage_state(path=self.state_path)
+                        state_saved = True
+                except Exception:
+                    logger.exception('wtf')
                 time.sleep(self.config.LOOP_DELTA)
