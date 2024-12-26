@@ -34,11 +34,10 @@ class TestTestCase(unittest.TestCase):
         # remove_path(WORK_DIR)
         makedirs(WORK_DIR)
         self.config = Config(__file__,
-            MARK_AS_READ_CHATS=['Constance', 'Clémence', 'Céline'],
+            MARK_AS_READ_CHATS=['Constance', 'Clémence'],
             HEADLESS=False,
             TIMEOUT=60,
             LOOP_DELTA=10,
-            RELOAD_MAX_ERRORS=10,
         )
 
     def test_1(self):
