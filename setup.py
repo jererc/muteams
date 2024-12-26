@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='muteams',
-    version='2024.12.25.142405',
+    version='2024.12.26.101029',
     author='jererc',
     author_email='jererc@gmail.com',
     url='https://github.com/jererc/muteams',

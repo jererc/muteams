@@ -16,7 +16,8 @@ def main():
         os.path.join(path, 'user_settings.py'),
         HEADLESS=not args.headful,
         TIMEOUT=60,
-        LOOP_DELTA=30,
+        LOOP_DELTA=10,
+        RELOAD_MAX_ERRORS=20,
     )
     Muteams(config).run()
 

@@ -1,19 +1,33 @@
+from collections import defaultdict
 from contextlib import contextmanager
+from dataclasses import dataclass
 import os
 import time
+from typing import Any
 
 from playwright.sync_api import TimeoutError, sync_playwright
 
 from muteams import WORK_DIR, logger
 
 
+@dataclass
+class UnreadChat:
+    title: str
+    element: Any
+
+
 class Muteams:
     url = 'https://teams.microsoft.com/v2/'
+    chat_selector = 'xpath=//span[@data-tid="chat-list-item-title"]'
+    unread_selector = 'xpath=//div[contains(@class, "chatListItem_unreadIndicator")]/..'
+    title_selector = 'xpath=.//div[3]/div/span'
 
     def __init__(self, config):
         self.config = config
         self.work_dir = WORK_DIR
         self.state_path = os.path.join(self.work_dir, 'state.json')
+        if not self.config.MARK_AS_READ_CHATS:
+            raise Exception('missing MARK_AS_READ_CHATS')
 
     @contextmanager
     def playwright_context(self):
@@ -51,37 +65,36 @@ class Muteams:
                 return True
         return False
 
-    def _mark_as_read_if_required(self, unread_element, timeout=5):
-        if not self.config.MARK_AS_READ_CHATS:
-            return
-        title_selector = 'xpath=.//div[3]/div/span'
-        elements = unread_element.locator(title_selector).all()
-        if not elements:
-            logger.warning(f'failed to find {title_selector}')
-            return
-        title = elements[0].text_content().strip()
-        if not self._must_mark_as_read(title):
-            return
-        print(f'marking as read {title}')
-        unread_element.click()
-        end_ts = time.time() + timeout
-        while time.time() < end_ts:
-            if not unread_element.locator('xpath=.//div').all():
-                return
-            time.sleep(.2)
+    def _get_unread_chat(self, page):
+        for unread_element in page.locator(self.unread_selector).all():
+            elements = unread_element.locator(self.title_selector).all()
+            if not elements:
+                continue
+            title = elements[0].text_content().strip()
+            if self._must_mark_as_read(title):
+                return UnreadChat(title=title, element=elements[0])
 
     def run(self):
         state_saved = False
+        unread_counts = defaultdict(int)
         with self.playwright_context() as context:
             page = context.new_page()
             page.goto(self.url)
-            # menu_selector = 'xpath=//div[@aria-label="Chat"]'
-            chat_selector = 'xpath=//span[@data-tid="chat-list-item-title"]'
-            unread_selector = 'xpath=//div[contains(@class, "chatListItem_unreadIndicator")]/..'
-            self._wait_for_selector(page, chat_selector)
+            self._wait_for_selector(page, self.chat_selector)
             while True:
-                for unread_element in page.locator(unread_selector).all():
-                    self._mark_as_read_if_required(unread_element)
+                chat = self._get_unread_chat(page)
+                if chat:
+                    unread_counts[chat.title] += 1
+                    if unread_counts[chat.title] > self.config.RELOAD_MAX_ERRORS:
+                        logger.warning('reloading after too many errors')
+                        page.reload()
+                        continue
+                    print(f'marking as read {chat.title}')
+                    chat.element.click()
+                    time.sleep(1)
+                    continue
+
+                unread_counts.clear()
                 if not state_saved:
                     context.storage_state(path=self.state_path)
                     state_saved = True
