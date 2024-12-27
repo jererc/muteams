@@ -20,4 +20,5 @@ Bootstrapper(
     download_assets=[
         ('user_settings.py', 'https://raw.githubusercontent.com/jererc/muteams/refs/heads/main/bootstrap/user_settings.py'),
     ],
+    shortcut_terminal=True,
 ).setup_shortcut()
