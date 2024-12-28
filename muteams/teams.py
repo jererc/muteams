@@ -10,9 +10,6 @@ from playwright.sync_api import sync_playwright
 from muteams import WORK_DIR, logger
 
 
-MAX_ATTEMPTS = 10
-
-
 @dataclass
 class UnreadChat:
     title: str
@@ -78,12 +75,13 @@ class Muteams:
             page.goto(self.url)
             page.wait_for_selector(self.chat_selector,
                 timeout=self.config.TIMEOUT * 1000)
+            logger.debug('watching...')
             while True:
                 try:
                     chat = self._get_unread_chat(page)
                     if chat:
                         attempts[chat.title] += 1
-                        if attempts[chat.title] > MAX_ATTEMPTS:
+                        if attempts[chat.title] > self.config.RELOAD_MAX_ATTEMPTS:
                             logger.error('reloading after too many attempts')
                             page.reload()
                             attempts.clear()
@@ -100,5 +98,5 @@ class Muteams:
                         context.storage_state(path=self.state_path)
                         state_saved = True
                 except Exception:
-                    logger.exception('wtf')
+                    logger.exception('failed')
                 time.sleep(self.config.LOOP_DELTA)

@@ -38,6 +38,7 @@ class TestTestCase(unittest.TestCase):
             HEADLESS=False,
             TIMEOUT=60,
             LOOP_DELTA=10,
+            RELOAD_MAX_ATTEMPTS=10,
         )
 
     def test_1(self):
