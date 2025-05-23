@@ -24,15 +24,10 @@ def remove_path(path):
         os.remove(path)
 
 
-def makedirs(path):
-    if not os.path.exists(path):
-        os.makedirs(path)
-
-
 class TestTestCase(unittest.TestCase):
     def setUp(self):
         # remove_path(WORK_DIR)
-        makedirs(WORK_DIR)
+        os.makedirs(WORK_DIR, exist_ok=True)
         self.config = Config(__file__,
             MARK_AS_READ_CHATS=['Constance', 'Clémence'],
             HEADLESS=False,
