@@ -41,7 +41,7 @@ class Muteams:
                     ],
                 )
                 context = browser.new_context(storage_state=self.state_path
-                    if os.path.exists(self.state_path) else None)
+                                              if os.path.exists(self.state_path) else None)
                 yield context
             finally:
                 if context:
@@ -74,7 +74,7 @@ class Muteams:
             page = context.new_page()
             page.goto(self.url)
             page.wait_for_selector(self.chat_selector,
-                timeout=self.config.TIMEOUT * 1000)
+                                   timeout=self.config.TIMEOUT * 1000)
             logger.debug('watching...')
             while True:
                 try:

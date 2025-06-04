@@ -2,7 +2,6 @@ import logging
 import os
 import shutil
 import unittest
-from unittest.mock import patch
 
 from svcutils.service import Config
 
@@ -28,7 +27,8 @@ class TestTestCase(unittest.TestCase):
     def setUp(self):
         # remove_path(WORK_DIR)
         os.makedirs(WORK_DIR, exist_ok=True)
-        self.config = Config(__file__,
+        self.config = Config(
+            __file__,
             MARK_AS_READ_CHATS=['Constance', 'Clémence'],
             HEADLESS=False,
             TIMEOUT=60,
