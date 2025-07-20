@@ -1,13 +1,17 @@
 from collections import defaultdict
 from contextlib import contextmanager
 from dataclasses import dataclass
+import logging
 import os
 import time
 from typing import Any
 
 from playwright.sync_api import sync_playwright
 
-from muteams import WORK_DIR, logger
+from muteams import WORK_DIR
+
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
