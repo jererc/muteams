@@ -1,19 +1,10 @@
-import logging
 import os
 import shutil
 import unittest
 
-from svcutils.service import Config
-
-import muteams as module
-WORK_DIR = os.path.join(os.path.expanduser('~'), '_tests', 'muteams')
-module.WORK_DIR = WORK_DIR
-module.logger.setLevel(logging.DEBUG)
-module.logger.handlers.clear()
+from tests import WORK_DIR
 from muteams import teams as module
-
-
-module.logger.setLevel(logging.DEBUG)
+from svcutils.service import Config
 
 
 def remove_path(path):
