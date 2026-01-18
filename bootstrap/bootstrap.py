@@ -20,6 +20,6 @@ Bootstrapper(
         {'name': 'muteams', 'args': ['muteams.main', '-p', os.getcwd()], 'headless': False},
     ],
     download_assets=[
-        ('user_settings.py', 'https://raw.githubusercontent.com/jererc/muteams/refs/heads/main/bootstrap/user_settings.py'),
+        {'filename': 'user_settings.py', 'url': 'https://raw.githubusercontent.com/jererc/muteams/refs/heads/main/bootstrap/user_settings.py'},
     ],
 )
